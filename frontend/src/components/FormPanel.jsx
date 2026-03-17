@@ -6,6 +6,7 @@ const sections = [
   { id: "experience", label: "Experience", icon: "💼" },
   { id: "education", label: "Education", icon: "🎓" },
   { id: "skills", label: "Skills", icon: "⚡" },
+  { id: "projects", label: "Projects", icon: "🚀" },
 ];
 
 const FormPanel = ({ data, handlers }) => {
@@ -29,10 +30,10 @@ const FormPanel = ({ data, handlers }) => {
             key={s.id}
             onClick={() => setActiveSection(s.id)}
             style={{ animationDelay: `${i * 0.05}s` }}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all text-left relative overflow-hidden group
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all text-left relative overflow-hidden
               ${activeSection === s.id
                 ? "bg-pink-500/10 text-pink-400 border border-pink-500/20"
-                : "text-white/35 hover:text-white/70 hover:bg-white/4 border border-transparent hover:translate-x-1"
+                : "text-white/35 hover:text-white/70 hover:bg-white/5 border border-transparent hover:translate-x-1"
               }`}
           >
             {activeSection === s.id && (
@@ -53,7 +54,7 @@ const FormPanel = ({ data, handlers }) => {
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-y-auto p-7 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-7">
 
         {/* Personal */}
         {activeSection === "personal" && (
@@ -146,7 +147,7 @@ const FormPanel = ({ data, handlers }) => {
                         placeholder="What did you accomplish here?"
                         value={exp.description}
                         onChange={e => handlers.updateExperience(exp.id, "description", e.target.value)}
-                        className="input-style resize-none col-span-2"
+                        className="input-style resize-none"
                       />
                     </Field>
                   </div>
@@ -262,12 +263,86 @@ const FormPanel = ({ data, handlers }) => {
           </div>
         )}
 
+        {/* Projects */}
+        {activeSection === "projects" && (
+          <div className="animate-fadeUp">
+            <SectionHead title="Projects" sub="Showcase your best work" />
+            <div className="flex flex-col gap-4">
+              {data.projects.map((proj, idx) => (
+                <div key={proj.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5 hover:border-white/12 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-[11px] text-orange-400 font-medium">
+                        {idx + 1}
+                      </div>
+                      <span className="text-[13px] font-medium text-white">
+                        {proj.name || <span className="text-white/30">New Project</span>}
+                      </span>
+                    </div>
+                    {data.projects.length > 1 && (
+                      <button
+                        onClick={() => handlers.removeProject(proj.id)}
+                        className="text-[11px] text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
+                      >
+                        ✕ Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Project Name">
+                      <input
+                        type="text"
+                        placeholder="Portfolio Website"
+                        value={proj.name}
+                        onChange={e => handlers.updateProject(proj.id, "name", e.target.value)}
+                        className="input-style"
+                      />
+                    </Field>
+                    <Field label="Tech Used">
+                      <input
+                        type="text"
+                        placeholder="React, Firebase"
+                        value={proj.tech}
+                        onChange={e => handlers.updateProject(proj.id, "tech", e.target.value)}
+                        className="input-style"
+                      />
+                    </Field>
+                    <Field label="🔗 Live Link" className="col-span-2">
+                      <input
+                        type="text"
+                        placeholder="https://myproject.com"
+                        value={proj.link}
+                        onChange={e => handlers.updateProject(proj.id, "link", e.target.value)}
+                        className="input-style"
+                      />
+                    </Field>
+                    <Field label="Description" className="col-span-2">
+                      <textarea
+                        rows={3}
+                        placeholder="What does this project do? What problem does it solve?"
+                        value={proj.description}
+                        onChange={e => handlers.updateProject(proj.id, "description", e.target.value)}
+                        className="input-style resize-none"
+                      />
+                    </Field>
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={handlers.addProject}
+                className="w-full py-3 border border-dashed border-orange-500/25 text-orange-400/70 rounded-2xl text-[13px] hover:bg-orange-500/5 hover:border-orange-500/40 hover:text-orange-400 hover:-translate-y-0.5 transition-all"
+              >
+                + Add Project
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 };
 
-// Helper Components
 const SectionHead = ({ title, sub }) => (
   <div className="mb-6 group">
     <h2 className="text-[17px] font-medium text-white">{title}</h2>

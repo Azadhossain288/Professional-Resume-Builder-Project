@@ -8,6 +8,7 @@ const initialData = {
   experience: [{ id: 1, role: "", company: "", duration: "", description: "" }],
   education: [{ id: 1, degree: "", school: "", year: "" }],
   skills: [],
+  projects: [{ id: 1, name: "", tech: "", link: "", description: "" }],
 };
 
 const ResumeBuilder = () => {
@@ -83,15 +84,40 @@ const ResumeBuilder = () => {
     }));
   };
 
+  // ✅ Projects handlers
+  const updateProject = (id, field, value) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.map(p =>
+        p.id === id ? { ...p, [field]: value } : p
+      )
+    }));
+  };
+
+  const addProject = () => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: [...prev.projects, { id: Date.now(), name: "", tech: "", link: "", description: "" }]
+    }));
+  };
+
+  const removeProject = (id) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.filter(p => p.id !== id)
+    }));
+  };
+
   const handlers = {
     updatePersonalInfo, updateSummary,
     updateExperience, addExperience, removeExperience,
     updateEducation, addEducation, removeEducation,
     addSkill, removeSkill,
+    updateProject, addProject, removeProject,
   };
 
   return (
-    <div className="flex h-[calc(100vh-65px)] bg-gray-950 relative">
+    <div className="flex h-[calc(100vh-65px)] bg-[#080812] relative">
       {/* Template Selector */}
       <div className="absolute top-3 right-4 z-10 flex gap-2">
         {["modern", "classic", "minimal"].map(t => (
@@ -101,7 +127,7 @@ const ResumeBuilder = () => {
             className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition-all ${
               activeTemplate === t
                 ? "bg-pink-500 text-white"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                : "bg-white/5 text-white/40 hover:bg-white/10 border border-white/10"
             }`}
           >
             {t}
@@ -110,12 +136,12 @@ const ResumeBuilder = () => {
       </div>
 
       {/* Left — Form */}
-      <div className="w-1/2 overflow-y-auto border-r border-white/10">
+      <div className="w-1/2 overflow-y-auto border-r border-white/5">
         <FormPanel data={resumeData} handlers={handlers} />
       </div>
 
       {/* Right — Preview */}
-      <div className="w-1/2 overflow-y-auto bg-gray-100">
+      <div className="w-1/2 overflow-y-auto bg-[#111118]">
         <PreviewPanel data={resumeData} template={activeTemplate} />
       </div>
     </div>
