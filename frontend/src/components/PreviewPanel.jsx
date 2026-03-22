@@ -1,19 +1,93 @@
-const PreviewPanel = ({ data, template }) => {
-  const { personalInfo: p, summary, experience, education, skills } = data;
+import { useRef } from "react";
 
-  if (template === "modern") return <ModernTemplate data={data} />;
-  if (template === "classic") return <ClassicTemplate data={data} />;
-  return <MinimalTemplate data={data} />;
+const PreviewPanel = ({ data, template }) => {
+  const resumeRef = useRef();
+
+ const downloadPDF = () => {
+  const printWindow = window.open("", "_blank");
+  
+  
+  const resumeHTML = resumeRef.current.outerHTML;
+  
+  
+  const styles = Array.from(document.styleSheets)
+    .map(sheet => {
+      try {
+        return Array.from(sheet.cssRules)
+          .map(rule => rule.cssText)
+          .join("\n");
+      } catch {
+        return "";
+      }
+    })
+    .join("\n");
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${data.personalInfo.name || "Resume"}</title>
+      <style>
+        ${styles}
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background: white;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        @media print {
+          body { margin: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      ${resumeHTML}
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }, 1000);
+};
+
+  return (
+    <div className="p-5">
+      {/* Download Button */}
+      <button
+        onClick={downloadPDF}
+        className="w-full mb-4 py-2.5 bg-gradient-to-r from-pink-500 to-blue-500 text-white text-sm font-semibold rounded-xl hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-lg shadow-pink-500/20"
+      >
+        ⬇ Download PDF
+      </button>
+
+      {/* Resume */}
+      <div ref={resumeRef}>
+        {template === "modern" && <ModernTemplate data={data} />}
+        {template === "classic" && <ClassicTemplate data={data} />}
+        {template === "minimal" && <MinimalTemplate data={data} />}
+      </div>
+    </div>
+  );
 };
 
 // =====================
 // MODERN TEMPLATE
 // =====================
 const ModernTemplate = ({ data }) => {
-  const { personalInfo: p, summary, experience, education, skills } = data;
+  const { personalInfo: p, summary, experience, education, skills, projects } = data;
 
   return (
-    <div className="m-6 bg-white rounded-2xl overflow-hidden shadow-2xl font-sans">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-2xl font-sans">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#1a1a3e] to-[#1a3a5c] p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-pink-500/20 -translate-y-1/2 translate-x-1/2" />
@@ -78,6 +152,33 @@ const ModernTemplate = ({ data }) => {
               ))}
             </Section>
           )}
+
+          {/* Projects */}
+          {projects?.some(p => p.name) && (
+            <Section title="Projects">
+              {projects.filter(p => p.name).map(p => (
+                <div key={p.id} className="mb-4 pl-4 border-l-2 border-orange-200">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-gray-800 text-sm">{p.name}</p>
+                    {p.link && (
+                      <a href={p.link} target="_blank" rel="noreferrer"
+                        className="text-[10px] bg-orange-50 text-orange-500 px-2 py-0.5 rounded-full">
+                        🔗 Live
+                      </a>
+                    )}
+                  </div>
+                  {p.tech && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {p.tech.split(",").map(t => (
+                        <span key={t} className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">{t.trim()}</span>
+                      ))}
+                    </div>
+                  )}
+                  {p.description && <p className="text-gray-600 text-xs mt-1.5 leading-relaxed">{p.description}</p>}
+                </div>
+              ))}
+            </Section>
+          )}
         </div>
       </div>
     </div>
@@ -88,11 +189,10 @@ const ModernTemplate = ({ data }) => {
 // CLASSIC TEMPLATE
 // =====================
 const ClassicTemplate = ({ data }) => {
-  const { personalInfo: p, summary, experience, education, skills } = data;
+  const { personalInfo: p, summary, experience, education, skills, projects } = data;
 
   return (
-    <div className="m-6 bg-white rounded-xl overflow-hidden shadow-2xl font-sans">
-      {/* Header */}
+    <div className="bg-white rounded-xl overflow-hidden shadow-2xl font-sans">
       <div className="bg-gray-900 p-8 text-center">
         <h1 className="text-3xl font-bold text-white tracking-wide">
           {p.name || <span className="text-white/30">Your Name</span>}
@@ -113,7 +213,6 @@ const ClassicTemplate = ({ data }) => {
             <p className="text-gray-600 text-sm leading-relaxed">{summary}</p>
           </ClassicSection>
         )}
-
         {experience.some(e => e.role || e.company) && (
           <ClassicSection title="EXPERIENCE">
             {experience.filter(e => e.role || e.company).map(e => (
@@ -128,7 +227,20 @@ const ClassicTemplate = ({ data }) => {
             ))}
           </ClassicSection>
         )}
-
+        {projects?.some(p => p.name) && (
+          <ClassicSection title="PROJECTS">
+            {projects.filter(p => p.name).map(p => (
+              <div key={p.id} className="mb-4">
+                <div className="flex justify-between items-start">
+                  <p className="font-bold text-gray-800 text-sm">{p.name}</p>
+                  {p.link && <a href={p.link} target="_blank" rel="noreferrer" className="text-xs text-yellow-600">🔗 Live</a>}
+                </div>
+                {p.tech && <p className="text-yellow-600 text-xs font-medium">{p.tech}</p>}
+                {p.description && <p className="text-gray-600 text-xs mt-1 leading-relaxed">{p.description}</p>}
+              </div>
+            ))}
+          </ClassicSection>
+        )}
         {education.some(e => e.degree || e.school) && (
           <ClassicSection title="EDUCATION">
             {education.filter(e => e.degree || e.school).map(e => (
@@ -142,7 +254,6 @@ const ClassicTemplate = ({ data }) => {
             ))}
           </ClassicSection>
         )}
-
         {skills.length > 0 && (
           <ClassicSection title="SKILLS">
             <div className="flex flex-wrap gap-2">
@@ -161,11 +272,10 @@ const ClassicTemplate = ({ data }) => {
 // MINIMAL TEMPLATE
 // =====================
 const MinimalTemplate = ({ data }) => {
-  const { personalInfo: p, summary, experience, education, skills } = data;
+  const { personalInfo: p, summary, experience, education, skills, projects } = data;
 
   return (
-    <div className="m-6 bg-white rounded-xl overflow-hidden shadow-2xl font-sans p-10">
-      {/* Header */}
+    <div className="bg-white rounded-xl overflow-hidden shadow-2xl font-sans p-10">
       <div className="border-b-2 border-gray-900 pb-4 mb-6">
         <h1 className="text-4xl font-black text-gray-900 tracking-tight">
           {p.name || <span className="text-gray-200">Your Name</span>}
@@ -185,7 +295,6 @@ const MinimalTemplate = ({ data }) => {
           <p className="text-gray-600 text-sm leading-relaxed">{summary}</p>
         </div>
       )}
-
       {experience.some(e => e.role || e.company) && (
         <MinimalSection title="Experience">
           {experience.filter(e => e.role || e.company).map(e => (
@@ -199,7 +308,22 @@ const MinimalTemplate = ({ data }) => {
           ))}
         </MinimalSection>
       )}
-
+      {projects?.some(p => p.name) && (
+        <MinimalSection title="Projects">
+          {projects.filter(p => p.name).map(p => (
+            <div key={p.id} className="mb-4">
+              <div className="flex justify-between items-center">
+                <p className="font-bold text-gray-800 text-sm">
+                  {p.name}
+                  {p.tech && <span className="font-normal text-gray-400 text-xs"> — {p.tech}</span>}
+                </p>
+                {p.link && <a href={p.link} target="_blank" rel="noreferrer" className="text-xs text-gray-400">🔗</a>}
+              </div>
+              {p.description && <p className="text-gray-500 text-xs mt-1 leading-relaxed">{p.description}</p>}
+            </div>
+          ))}
+        </MinimalSection>
+      )}
       {education.some(e => e.degree || e.school) && (
         <MinimalSection title="Education">
           {education.filter(e => e.degree || e.school).map(e => (
@@ -210,7 +334,6 @@ const MinimalTemplate = ({ data }) => {
           ))}
         </MinimalSection>
       )}
-
       {skills.length > 0 && (
         <MinimalSection title="Skills">
           <p className="text-sm text-gray-600">{skills.join(" · ")}</p>
