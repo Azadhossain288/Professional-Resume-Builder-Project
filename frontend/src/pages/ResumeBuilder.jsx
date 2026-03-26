@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; 
 import axios from "axios";
 import FormPanel from "../components/FormPanel";
 import PreviewPanel from "../components/PreviewPanel";
@@ -16,60 +17,77 @@ const ResumeBuilder = () => {
   const [resumeData, setResumeData] = useState(initialData);
   const [activeTemplate, setActiveTemplate] = useState("modern");
   const [resumeId, setResumeId] = useState(null);
-  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const location = useLocation(); 
 
-  // Login করলে আগের resume load করো
+  
   useEffect(() => {
-    const loadResume = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/resume/all", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data.length > 0) {
-          const latest = res.data[res.data.length - 1];
-          setResumeId(latest._id);
-          setResumeData({
-            personalInfo: latest.personalInfo || initialData.personalInfo,
-            summary: latest.summary || "",
-            experience: latest.experience || initialData.experience,
-            education: latest.education || initialData.education,
-            skills: latest.skills || [],
-            projects: latest.projects || initialData.projects,
-          });
-        }
-      } catch (err) {
-        console.log("No resume found");
-      }
-    };
-    loadResume();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const isNew = params.get("new");
 
-  // Save resume
+    if (isNew) {
+      
+      setResumeData(initialData);
+      setResumeId(null);
+    } else if (id) {
+      
+      loadResumeById(id);
+    } else {
+      
+      loadLatestResume();
+    }
+  }, [location.search]);
+
+  const loadResumeById = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`http://localhost:5000/api/resume/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setResumeId(res.data._id);
+      setResumeData(res.data);
+      setActiveTemplate(res.data.template || "modern");
+    } catch (err) {
+      console.log("Error loading specific resume");
+    }
+  };
+
+  const loadLatestResume = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/resume/all", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.length > 0) {
+        const latest = res.data[res.data.length - 1];
+        setResumeId(latest._id);
+        setResumeData(latest);
+        setActiveTemplate(latest.template || "modern");
+      }
+    } catch (err) {
+      console.log("No resume found");
+    }
+  };
+
+  // ২. Save resume (Update existing or Create new)
   const saveResume = async () => {
     setSaveStatus("saving");
     try {
       const token = localStorage.getItem("token");
-      const payload = {
-        personalInfo: resumeData.personalInfo,
-        summary: resumeData.summary,
-        experience: resumeData.experience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        template: activeTemplate,
-      };
+      const payload = { ...resumeData, template: activeTemplate };
 
       if (resumeId) {
-        // আগে save করা থাকলে update করো
+        // Update Logic
         await axios.put(`http://localhost:5000/api/resume/${resumeId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // নতুন save করো
+        // Create New Logic
         const res = await axios.post("http://localhost:5000/api/resume/save", payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        
         setResumeId(res.data.resume._id);
       }
 
@@ -81,6 +99,7 @@ const ResumeBuilder = () => {
     }
   };
 
+  // --- Handlers ---
   const updatePersonalInfo = (field, value) => {
     setResumeData(prev => ({
       ...prev,
@@ -179,12 +198,11 @@ const ResumeBuilder = () => {
     updateEducation, addEducation, removeEducation,
     addSkill, removeSkill,
     updateProject, addProject, removeProject,
-    saveResume, saveStatus, // ← FormPanel এ pass করো
+    saveResume, saveStatus,
   };
 
   return (
     <div className="flex h-[calc(100vh-65px)] bg-[#080812] relative">
-      {/* Template Selector */}
       <div className="absolute top-3 right-4 z-10 flex gap-2">
         {["modern", "classic", "minimal"].map(t => (
           <button
@@ -201,12 +219,10 @@ const ResumeBuilder = () => {
         ))}
       </div>
 
-      {/* Left — Form */}
       <div className="w-1/2 overflow-y-auto border-r border-white/5">
         <FormPanel data={resumeData} handlers={handlers} />
       </div>
 
-      {/* Right — Preview */}
       <div className="w-1/2 overflow-y-auto bg-[#111118]">
         <PreviewPanel data={resumeData} template={activeTemplate} />
       </div>
