@@ -47,9 +47,29 @@ const FormPanel = ({ data, handlers }) => {
           </button>
         ))}
         <div className="mt-auto pt-4 border-t border-white/5">
-          <button className="w-full py-2.5 bg-pink-500/10 border border-pink-500/20 rounded-xl text-pink-400 text-[12px] font-medium hover:bg-pink-500/20 transition-all hover:-translate-y-0.5">
-            💾 Save Resume
-          </button>
+          
+         <button
+  onClick={handlers.saveResume}
+  disabled={handlers.saveStatus === "saving"}
+  className={`w-full py-2.5 rounded-xl text-[12px] font-medium transition-all hover:-translate-y-0.5
+    ${handlers.saveStatus === "saved"
+      ? "bg-green-500/20 border border-green-500/30 text-green-400"
+      : handlers.saveStatus === "error"
+      ? "bg-red-500/20 border border-red-500/30 text-red-400"
+      : handlers.saveStatus === "saving"
+      ? "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+      : "bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:bg-pink-500/20"
+    }`}
+>
+  {handlers.saveStatus === "saving" ? "⏳ Saving..." :
+   handlers.saveStatus === "saved" ? "✅ Saved!" :
+   handlers.saveStatus === "error" ? "❌ Error!" :
+   "💾 Save Resume"}
+</button>
+
+
+
+
         </div>
       </div>
 

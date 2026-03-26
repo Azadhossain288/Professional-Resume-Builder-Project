@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import FormPanel from "../components/FormPanel";
 import PreviewPanel from "../components/PreviewPanel";
 
@@ -14,6 +15,71 @@ const initialData = {
 const ResumeBuilder = () => {
   const [resumeData, setResumeData] = useState(initialData);
   const [activeTemplate, setActiveTemplate] = useState("modern");
+  const [resumeId, setResumeId] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+
+  // Login করলে আগের resume load করো
+  useEffect(() => {
+    const loadResume = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:5000/api/resume/all", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.length > 0) {
+          const latest = res.data[res.data.length - 1];
+          setResumeId(latest._id);
+          setResumeData({
+            personalInfo: latest.personalInfo || initialData.personalInfo,
+            summary: latest.summary || "",
+            experience: latest.experience || initialData.experience,
+            education: latest.education || initialData.education,
+            skills: latest.skills || [],
+            projects: latest.projects || initialData.projects,
+          });
+        }
+      } catch (err) {
+        console.log("No resume found");
+      }
+    };
+    loadResume();
+  }, []);
+
+  // Save resume
+  const saveResume = async () => {
+    setSaveStatus("saving");
+    try {
+      const token = localStorage.getItem("token");
+      const payload = {
+        personalInfo: resumeData.personalInfo,
+        summary: resumeData.summary,
+        experience: resumeData.experience,
+        education: resumeData.education,
+        skills: resumeData.skills,
+        projects: resumeData.projects,
+        template: activeTemplate,
+      };
+
+      if (resumeId) {
+        // আগে save করা থাকলে update করো
+        await axios.put(`http://localhost:5000/api/resume/${resumeId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        // নতুন save করো
+        const res = await axios.post("http://localhost:5000/api/resume/save", payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setResumeId(res.data.resume._id);
+      }
+
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (err) {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    }
+  };
 
   const updatePersonalInfo = (field, value) => {
     setResumeData(prev => ({
@@ -84,7 +150,6 @@ const ResumeBuilder = () => {
     }));
   };
 
-  // ✅ Projects handlers
   const updateProject = (id, field, value) => {
     setResumeData(prev => ({
       ...prev,
@@ -114,6 +179,7 @@ const ResumeBuilder = () => {
     updateEducation, addEducation, removeEducation,
     addSkill, removeSkill,
     updateProject, addProject, removeProject,
+    saveResume, saveStatus, // ← FormPanel এ pass করো
   };
 
   return (
