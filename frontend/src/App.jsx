@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import MyResumes from "./pages/MyResume";
+import Home from "./pages/Home";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -11,40 +12,43 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/home");
   };
 
   return (
     <nav style={navStyles.nav}>
-      <span style={navStyles.logo}>📄 ResumeFlow</span>
-      {user && (
+      <span
+        style={{ ...navStyles.logo, cursor: "pointer" }}
+        onClick={() => navigate(user ? "/" : "/home")}
+      >
+        📄 ResumeFlow
+      </span>
+      {user ? (
         <div style={navStyles.right}>
-          <button
-            onClick={() => navigate("/resumes")}
-            style={navStyles.resumeBtn}
-          >
+          <button onClick={() => navigate("/resumes")} style={navStyles.resumeBtn}>
             📋 My Resumes
           </button>
-          
-         
-          <button
-            onClick={() => navigate("/?new=true")} 
-            style={navStyles.newBtn}
-          >
+          <button onClick={() => navigate("/?new=true")} style={navStyles.newBtn}>
             + New Resume
           </button>
-
           <span style={navStyles.username}>👋 {user.name}</span>
           <button style={navStyles.btn} onClick={handleLogout}>
             Logout
+          </button>
+        </div>
+      ) : (
+        <div style={navStyles.right}>
+          <button onClick={() => navigate("/login")} style={navStyles.resumeBtn}>
+            Login
+          </button>
+          <button onClick={() => navigate("/register")} style={navStyles.newBtn}>
+            Get Started
           </button>
         </div>
       )}
     </nav>
   );
 };
-
-
 
 const navStyles = {
   nav: {
@@ -75,7 +79,7 @@ const navStyles = {
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  return user ? children : <Navigate to="/home" />;
 };
 
 function App() {
@@ -83,6 +87,7 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -101,6 +106,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </BrowserRouter>
   );
