@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { useState } from "react";
+import axios from "axios";
+
 
 const Home = () => {
   const navigate = useNavigate();
@@ -255,39 +258,88 @@ const Testimonials = () => {
 // =====================
 // CONTACT
 // =====================
-const Contact = () => (
-  <section id="contact" className="py-24 px-6">
-    <div className="max-w-2xl mx-auto text-center">
-      <span className="text-emerald-400 text-sm font-medium uppercase tracking-wider">Contact</span>
-      <h2 className="text-4xl font-bold text-white mt-3 mb-4">Get in touch</h2>
-      <p className="text-white/40 mb-10">Have questions or feedback? We'd love to hear from you.</p>
+const Contact = () => {
+  
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState("idle"); // idle, sending, sent, error
 
-      <div className="bg-[#0d0d1a] border border-white/8 rounded-2xl p-8">
-        <div className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Your Name"
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20"
-          />
-          <input
-            type="email"
-            placeholder="Your Email"
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20"
-          />
-          <textarea
-            rows={4}
-            placeholder="Your Message"
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20 resize-none"
-          />
-          <button className="w-full py-3 bg-gradient-to-r from-pink-500 to-blue-500 text-white font-semibold rounded-xl hover:opacity-90 hover:-translate-y-0.5 transition-all">
-            Send Message →
-          </button>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.message) {
+      alert("Please fill all fields!");
+      return;
+    }
+
+    setStatus("sending");
+
+    try {
+      
+      await axios.post("http://localhost:5000/api/contact/send", form);
+      
+      setStatus("sent");
+      setForm({ name: "", email: "", message: "" }); 
+      
+      
+      setTimeout(() => setStatus("idle"), 3000);
+    } catch (error) {
+      console.error("Email error:", error);
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  };
+
+  return (
+    <section id="contact" className="py-24 px-6">
+      <div className="max-w-2xl mx-auto text-center">
+        <span className="text-emerald-400 text-sm font-medium uppercase tracking-wider">Contact</span>
+        <h2 className="text-4xl font-bold text-white mt-3 mb-4">Get in touch</h2>
+        <p className="text-white/40 mb-10">Have questions or feedback? We'd love to hear from you.</p>
+
+        <div className="bg-[#0d0d1a] border border-white/8 rounded-2xl p-8">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Your Name"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20"
+            />
+            <input
+              type="email"
+              placeholder="Your Email"
+              required
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20"
+            />
+            <textarea
+              rows={4}
+              placeholder="Your Message"
+              required
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition-all placeholder:text-white/20 resize-none"
+            />
+            
+            <button 
+              type="submit"
+              disabled={status === "sending"}
+              className={`w-full py-3 font-semibold rounded-xl transition-all hover:-translate-y-0.5 
+                ${status === "sent" ? "bg-green-500" : status === "error" ? "bg-red-500" : "bg-gradient-to-r from-pink-500 to-blue-500"} 
+                text-white hover:opacity-90 disabled:opacity-50`}
+            >
+              {status === "sending" ? "⏳ Sending..." : 
+               status === "sent" ? "✅ Message Sent!" : 
+               status === "error" ? " Failed! Try again" : 
+               "Send Message →"}
+            </button>
+          </form>
         </div>
       </div>
-    </div>
-  </section>
-);
-
+    </section>
+  );
+};
 // =====================
 // FOOTER
 // =====================

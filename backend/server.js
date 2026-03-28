@@ -17,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
+app.use('/api/contact', require('./routes/contact'));
 
 // Test route
 app.get('/', (req, res) => {
