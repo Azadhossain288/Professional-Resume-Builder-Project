@@ -17,12 +17,23 @@ const Navbar = () => {
 
   return (
     <nav style={navStyles.nav}>
-      <span
-        style={{ ...navStyles.logo, cursor: "pointer" }}
-        onClick={() => navigate(user ? "/" : "/home")}
-      >
-        📄 ResumeFlow
-      </span>
+      <div style={navStyles.leftSection}>
+        <span
+          style={{ ...navStyles.logo, cursor: "pointer" }}
+          onClick={() => navigate(user ? "/" : "/home")}
+        >
+          📄 ResumeFlow
+        </span>
+        
+        {/* Home Button Added Here */}
+        <button 
+          onClick={() => navigate("/home")} 
+          style={navStyles.homeLinkBtn}
+        >
+          Home
+        </button>
+      </div>
+
       {user ? (
         <div style={navStyles.right}>
           <button onClick={() => navigate("/resumes")} style={navStyles.resumeBtn}>
@@ -57,7 +68,21 @@ const navStyles = {
     borderBottom: "1px solid rgba(255,255,255,0.06)",
     position: "sticky", top: 0, zIndex: 50,
   },
+  leftSection: {
+    display: "flex",
+    alignItems: "center",
+    gap: "20px"
+  },
   logo: { color: "#F0EEFF", fontWeight: "700", fontSize: "1.2rem" },
+  homeLinkBtn: {
+    background: "none",
+    border: "none",
+    color: "#8B8BAA",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    fontWeight: "500",
+    transition: "color 0.2s ease",
+  },
   right: { display: "flex", alignItems: "center", gap: "12px" },
   username: { color: "#8B8BAA", fontSize: "0.85rem" },
   resumeBtn: {
