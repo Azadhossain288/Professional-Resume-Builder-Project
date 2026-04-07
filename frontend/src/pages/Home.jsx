@@ -716,23 +716,104 @@ const Contact = () => {
 // =====================
 // FOOTER
 // =====================
-const Footer = () => (
-  <footer className="border-t border-white/5 py-8 px-6">
-    <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs">R</div>
-        <span className="text-white/50 text-sm">ResumeFlow</span>
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="relative border-t border-white/5 overflow-hidden bg-[#080812]">
+      {/* Background glow */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-pink-500/5 blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-8 py-12">
+        {/* Top row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+
+          {/* Brand Section */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">R</div>
+              <span className="text-white font-bold text-lg">ResumeFlow</span>
+            </div>
+            <p className="text-white/30 text-sm leading-relaxed max-w-xs">
+              Build professional resumes with live preview, multiple templates, and one-click PDF export. Land your dream job faster.
+            </p>
+            
+            {/* Social links */}
+            <div className="flex gap-3 mt-5">
+              {[
+                { icon: "𝕏", label: "Twitter" },
+                { icon: "in", label: "LinkedIn" },
+                { icon: "⌥", label: "GitHub" },
+              ].map(({ icon, label }) => (
+                <div
+                  key={label}
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all cursor-pointer text-xs font-bold"
+                >
+                  {icon}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Product links */}
+          <div>
+            <h4 className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-4">Product</h4>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { label: "Features", href: "#features" },
+                { label: "Templates", href: "#" },
+                { label: "PDF Export", href: "#" },
+                { label: "Cloud Save", href: "#" },
+              ].map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="text-white/30 hover:text-white/70 text-sm transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Company links */}
+          <div>
+            <h4 className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-4">Company</h4>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { label: "Testimonials", href: "#testimonials" },
+                { label: "Contact", href: "#contact" },
+                { label: "Privacy Policy", href: "#" },
+                { label: "Terms of Use", href: "#" },
+              ].map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="text-white/30 hover:text-white/70 text-sm transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Divider line */}
+        <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-6" />
+
+        {/* Bottom row */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-white/20 text-sm">
+            © {currentYear} ResumeFlow. Built with ❤️ using React & Node.js
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white/25 text-xs">All systems operational</span>
+          </div>
+        </div>
       </div>
-      <p className="text-white/25 text-sm">© 2026 ResumeFlow. Built with React & Node.js</p>
-      <div className="flex gap-6">
-        {["Features", "Testimonials", "Contact"].map(item => (
-          <a key={item} href={`#${item.toLowerCase()}`} className="text-white/30 hover:text-white/60 text-sm transition-colors">
-            {item}
-          </a>
-        ))}
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default Home;

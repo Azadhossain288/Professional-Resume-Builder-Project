@@ -22,7 +22,7 @@ const Register = () => {
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", formData);
-      login(res.data.user, res.data.token); // Register হলেই auto login
+      login(res.data.user, res.data.token); 
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed!");
@@ -34,7 +34,7 @@ const Register = () => {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Create Account ✨</h2>
+        <h2 style={styles.title}>Create Account</h2>
         <p style={styles.subtitle}>Join Resume Builder today</p>
 
         {error && <p style={styles.error}>{error}</p>}

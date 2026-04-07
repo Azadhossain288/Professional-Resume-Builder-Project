@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 // 2. Wrap all app
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // null মানে logged out
+  const [user, setUser] = useState(null); 
 
   const login = (userData, token) => {
     localStorage.setItem("token", token);

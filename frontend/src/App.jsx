@@ -42,7 +42,7 @@ const Navbar = () => {
           <button onClick={() => navigate("/?new=true")} style={navStyles.newBtn}>
             + New Resume
           </button>
-          <span style={navStyles.username}>👋 {user.name}</span>
+          <span style={navStyles.username}> {user.name}</span>
           <button style={navStyles.btn} onClick={handleLogout}>
             Logout
           </button>
