@@ -178,10 +178,10 @@ const Hero = ({ navigate }) => {
         {/* Stats */}
         <div className="flex justify-center gap-8 md:gap-16 mb-16">
           {[
-            { num: "10K+", label: "Resumes Created", icon: "📄" },
-            { num: "3", label: "Pro Templates", icon: "🎨" },
-            { num: "100%", label: "Free to Use", icon: "✨" },
-            { num: "5★", label: "User Rating", icon: "⭐" },
+            { num: "10K+", label: "Resumes Created", icon: "" },
+            { num: "3", label: "Pro Templates", icon: "" },
+            { num: "100%", label: "Free to Use", icon: "" },
+            { num: "5★", label: "User Rating", icon: "" },
           ].map(({ num, label, icon }) => (
             <div key={label} className="text-center group cursor-default">
               <div className="text-xl mb-1">{icon}</div>
@@ -273,7 +273,7 @@ const Hero = ({ navigate }) => {
 const Features = () => {
   const features = [
     {
-      icon: "⚡",
+      
       title: "Live Preview",
       desc: "See your resume update in real-time as you type.",
       gradient: "from-pink-500 to-rose-600",
@@ -284,7 +284,7 @@ const Features = () => {
       mockup: "live-preview",
     },
     {
-      icon: "🎨",
+     
       title: "Multiple Templates",
       desc: "Choose from Modern, Classic, and Minimal templates.",
       gradient: "from-blue-500 to-cyan-500",
@@ -295,7 +295,7 @@ const Features = () => {
       mockup: "templates",
     },
     {
-      icon: "📄",
+      
       title: "PDF Download",
       desc: "Download your resume as a professional PDF instantly.",
       gradient: "from-emerald-500 to-teal-500",
@@ -306,7 +306,7 @@ const Features = () => {
       mockup: "pdf",
     },
     {
-      icon: "☁️",
+      
       title: "Cloud Save",
       desc: "Your resumes are saved securely. Access anywhere.",
       gradient: "from-purple-500 to-violet-600",
@@ -317,7 +317,7 @@ const Features = () => {
       mockup: "cloud",
     },
     {
-      icon: "🚀",
+      
       title: "Projects Section",
       desc: "Showcase your best projects with tech stack and links.",
       gradient: "from-orange-500 to-amber-500",
@@ -328,7 +328,7 @@ const Features = () => {
       mockup: "projects",
     },
     {
-      icon: "🔒",
+      
       title: "Secure & Private",
       desc: "JWT auth and encrypted MongoDB keep your data safe.",
       gradient: "from-red-500 to-pink-600",
@@ -373,14 +373,11 @@ const Features = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-white/3 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
               {/* Top row */}
-              <div className="relative z-10 flex items-start justify-between mb-5">
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${f.gradient} flex items-center justify-center text-xl shadow-lg ${f.glow} group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                  {f.icon}
-                </div>
-                <span style={{ background: f.bg, borderColor: f.border }} className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border text-white/60">
-                  {f.tag}
-                </span>
-              </div>
+          <div className="relative z-10 flex items-start justify-end mb-5">
+            <span style={{ background: f.bg, borderColor: f.border }} className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border text-white/60">
+           {f.tag}
+           </span>
+         </div>
 
               {/* Animated Mockup */}
               <div className="relative z-10 my-5 h-28 rounded-2xl overflow-hidden bg-black/20 border border-white/5">
