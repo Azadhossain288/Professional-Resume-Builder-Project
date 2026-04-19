@@ -42,7 +42,27 @@ const resumeSchema = new mongoose.Schema({
     tech: String,
     link: String,
     description: String,
-  }]
+  }],
+
+   customStyle: {
+    fontSize: { 
+      type: String, 
+      default: '14px' 
+    },
+    themeColor: { 
+      type: String, 
+      default: '#ec4899' 
+    },
+    fontFamily: { 
+      type: String, 
+      default: 'Inter, sans-serif' 
+    },
+    lineHeight: { 
+      type: String, 
+      default: '1.5' 
+    }
+  }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Resume', resumeSchema);

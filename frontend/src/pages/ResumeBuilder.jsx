@@ -18,23 +18,23 @@ const ResumeBuilder = () => {
   const [activeTemplate, setActiveTemplate] = useState("modern");
   const [resumeId, setResumeId] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
+  
+  
+  const [aiLoading, setAiLoading] = useState(false); 
+  
   const location = useLocation(); 
 
-  
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get("id");
     const isNew = params.get("new");
 
     if (isNew) {
-      
       setResumeData(initialData);
       setResumeId(null);
     } else if (id) {
-      
       loadResumeById(id);
     } else {
-      
       loadLatestResume();
     }
   }, [location.search]);
@@ -70,7 +70,6 @@ const ResumeBuilder = () => {
     }
   };
 
-  // ২. Save resume (Update existing or Create new)
   const saveResume = async () => {
     setSaveStatus("saving");
     try {
@@ -78,16 +77,13 @@ const ResumeBuilder = () => {
       const payload = { ...resumeData, template: activeTemplate };
 
       if (resumeId) {
-        // Update Logic
         await axios.put(`http://localhost:5000/api/resume/${resumeId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // Create New Logic
         const res = await axios.post("http://localhost:5000/api/resume/save", payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
         setResumeId(res.data.resume._id);
       }
 
@@ -199,6 +195,8 @@ const ResumeBuilder = () => {
     addSkill, removeSkill,
     updateProject, addProject, removeProject,
     saveResume, saveStatus,
+    
+    aiLoading, setAiLoading, 
   };
 
   return (

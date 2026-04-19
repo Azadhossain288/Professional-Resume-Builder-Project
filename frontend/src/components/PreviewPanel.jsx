@@ -1,3 +1,5 @@
+//Preview panel 
+
 import { useRef } from "react";
 
 const PreviewPanel = ({ data, template }) => {

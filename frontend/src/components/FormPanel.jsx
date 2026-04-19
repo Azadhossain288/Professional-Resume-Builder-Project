@@ -46,37 +46,33 @@ const FormPanel = ({ data, handlers }) => {
             )}
           </button>
         ))}
+        
         <div className="mt-auto pt-4 border-t border-white/5">
-          
-         <button
-  onClick={handlers.saveResume}
-  disabled={handlers.saveStatus === "saving"}
-  className={`w-full py-2.5 rounded-xl text-[12px] font-medium transition-all hover:-translate-y-0.5
-    ${handlers.saveStatus === "saved"
-      ? "bg-green-500/20 border border-green-500/30 text-green-400"
-      : handlers.saveStatus === "error"
-      ? "bg-red-500/20 border border-red-500/30 text-red-400"
-      : handlers.saveStatus === "saving"
-      ? "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
-      : "bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:bg-pink-500/20"
-    }`}
->
-  {handlers.saveStatus === "saving" ? "⏳ Saving..." :
-   handlers.saveStatus === "saved" ? "✅ Saved!" :
-   handlers.saveStatus === "error" ? "❌ Error!" :
-   "💾 Save Resume"}
-</button>
-
-
-
-
+          <button
+            onClick={handlers.saveResume}
+            disabled={handlers.saveStatus === "saving"}
+            className={`w-full py-2.5 rounded-xl text-[12px] font-medium transition-all hover:-translate-y-0.5
+              ${handlers.saveStatus === "saved"
+                ? "bg-green-500/20 border border-green-500/30 text-green-400"
+                : handlers.saveStatus === "error"
+                ? "bg-red-500/20 border border-red-500/30 text-red-400"
+                : handlers.saveStatus === "saving"
+                ? "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+                : "bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:bg-pink-500/20"
+              }`}
+          >
+            {handlers.saveStatus === "saving" ? "⏳ Saving..." :
+             handlers.saveStatus === "saved" ? "✅ Saved!" :
+             handlers.saveStatus === "error" ? "❌ Error!" :
+             "💾 Save Resume"}
+          </button>
         </div>
       </div>
 
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto p-7">
 
-        {/* Personal */}
+        {/* Personal Section */}
         {activeSection === "personal" && (
           <div className="animate-fadeUp">
             <SectionHead title="Personal info" sub="Fill in your basic details" />
@@ -103,60 +99,98 @@ const FormPanel = ({ data, handlers }) => {
           </div>
         )}
 
-        {/* Summary */}
+        {/* Summary Section with AI ✨ */}
         {activeSection === "summary" && (
           <div className="animate-fadeUp">
-            <SectionHead title="Professional Summary" sub="Write a compelling overview" />
-            <Field label="✍️ About You">
+            <SectionHead title="Professional Summary" sub="Write or generate with AI" />
+            
+            {/* AI Magic Box */}
+            <div className="bg-gradient-to-br from-pink-500/10 to-blue-500/10 border border-pink-500/20 rounded-2xl p-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-white text-[10px]">✨</div>
+                <span className="text-white/80 text-[13px] font-semibold">AI Summary Generator</span>
+                <span className="ml-auto text-[10px] bg-green-500/15 border border-green-500/25 text-green-400 px-2 py-0.5 rounded-full font-bold">Free</span>
+              </div>
+              
+              <p className="text-white/40 text-[11px] mb-4">
+                আপনার Job Title আর Skills থেকে AI সুন্দর একটি সামারি লিখে দেবে।
+              </p>
+
+              <button
+                onClick={async () => {
+                  if (!data.personalInfo.title) {
+                    alert("Please fill in your Job Title first!");
+                    return;
+                  }
+                  handlers.setAiLoading(true);
+                  try {
+                    const token = localStorage.getItem("token");
+                    const res = await fetch("http://localhost:5000/api/ai/generate-summary", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        jobTitle: data.personalInfo.title,
+                        skills: data.skills,
+                        name: data.personalInfo.name,
+                      }),
+                    });
+                    const result = await res.json();
+                    if (result.summary) {
+                      handlers.updateSummary(result.summary);
+                    }
+                  } catch (err) {
+                    alert("API connection failed!");
+                  } finally {
+                    handlers.setAiLoading(false);
+                  }
+                }}
+                disabled={handlers.aiLoading || !data.personalInfo.title}
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                  handlers.aiLoading
+                    ? "bg-white/5 text-white/20 cursor-wait"
+                    : "bg-gradient-to-r from-pink-500 to-blue-500 text-white hover:opacity-90 active:scale-95 shadow-lg shadow-pink-500/20"
+                }`}
+              >
+                {handlers.aiLoading ? "Generating..." : "✨ Generate with AI"}
+              </button>
+            </div>
+
+            <Field label="✍️ Summary">
               <textarea
                 rows={7}
-                placeholder="A passionate developer with 3+ years of experience building modern web applications..."
+                placeholder="Write manually or use the AI generator above..."
                 value={data.summary}
                 onChange={e => handlers.updateSummary(e.target.value)}
                 className="input-style resize-none"
               />
-              <p className="text-[10px] text-white/20 text-right mt-1">{data.summary.length} characters</p>
+              <p className="text-[10px] text-white/20 text-right mt-1 font-mono">{data.summary.length} chars</p>
             </Field>
           </div>
         )}
 
-        {/* Experience */}
+        {/* Experience Section */}
         {activeSection === "experience" && (
           <div className="animate-fadeUp">
             <SectionHead title="Work Experience" sub="Add your professional history" />
             <div className="flex flex-col gap-4">
               {data.experience.map((exp, idx) => (
-                <div key={exp.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5 hover:border-white/12 transition-all">
+                <div key={exp.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-[11px] text-pink-400 font-medium">
-                        {idx + 1}
-                      </div>
-                      <span className="text-[13px] font-medium text-white">
-                        {exp.role || <span className="text-white/30">New Experience</span>}
-                      </span>
-                    </div>
+                    <span className="text-[13px] font-medium text-white">Experience #{idx + 1}</span>
                     {data.experience.length > 1 && (
-                      <button
-                        onClick={() => handlers.removeExperience(exp.id)}
-                        className="text-[11px] text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
-                      >
-                        ✕ Remove
-                      </button>
+                      <button onClick={() => handlers.removeExperience(exp.id)} className="text-[11px] text-red-400">✕ Remove</button>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { field: "role", label: "Job Role", placeholder: "Frontend Developer" },
-                      { field: "company", label: "Company", placeholder: "TechCorp Ltd." },
-                      { field: "duration", label: "Duration", placeholder: "2022 – Present" },
-                    ].map(({ field, label, placeholder }) => (
-                      <Field key={field} label={label}>
+                    {[{ f: "role", l: "Role" }, { f: "company", l: "Company" }, { f: "duration", l: "Duration" }].map(item => (
+                      <Field key={item.f} label={item.l}>
                         <input
                           type="text"
-                          placeholder={placeholder}
-                          value={exp[field]}
-                          onChange={e => handlers.updateExperience(exp.id, field, e.target.value)}
+                          value={exp[item.f]}
+                          onChange={e => handlers.updateExperience(exp.id, item.f, e.target.value)}
                           className="input-style"
                         />
                       </Field>
@@ -164,7 +198,6 @@ const FormPanel = ({ data, handlers }) => {
                     <Field label="Description" className="col-span-2">
                       <textarea
                         rows={3}
-                        placeholder="What did you accomplish here?"
                         value={exp.description}
                         onChange={e => handlers.updateExperience(exp.id, "description", e.target.value)}
                         className="input-style resize-none"
@@ -173,53 +206,31 @@ const FormPanel = ({ data, handlers }) => {
                   </div>
                 </div>
               ))}
-              <button
-                onClick={handlers.addExperience}
-                className="w-full py-3 border border-dashed border-pink-500/25 text-pink-400/70 rounded-2xl text-[13px] hover:bg-pink-500/5 hover:border-pink-500/40 hover:text-pink-400 hover:-translate-y-0.5 transition-all"
-              >
-                + Add Experience
-              </button>
+              <button onClick={handlers.addExperience} className="w-full py-3 border border-dashed border-pink-500/25 text-pink-400 rounded-2xl text-[13px]">+ Add Experience</button>
             </div>
           </div>
         )}
 
-        {/* Education */}
+        {/* Education Section */}
         {activeSection === "education" && (
           <div className="animate-fadeUp">
             <SectionHead title="Education" sub="Your academic background" />
             <div className="flex flex-col gap-4">
               {data.education.map((edu, idx) => (
-                <div key={edu.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5 hover:border-white/12 transition-all">
+                <div key={edu.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-[11px] text-blue-400 font-medium">
-                        {idx + 1}
-                      </div>
-                      <span className="text-[13px] font-medium text-white">
-                        {edu.degree || <span className="text-white/30">New Education</span>}
-                      </span>
-                    </div>
+                    <span className="text-[13px] font-medium text-white">Education #{idx + 1}</span>
                     {data.education.length > 1 && (
-                      <button
-                        onClick={() => handlers.removeEducation(edu.id)}
-                        className="text-[11px] text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
-                      >
-                        ✕ Remove
-                      </button>
+                      <button onClick={() => handlers.removeEducation(edu.id)} className="text-[11px] text-red-400">✕ Remove</button>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { field: "degree", label: "Degree", placeholder: "B.Sc. in CSE" },
-                      { field: "school", label: "University", placeholder: "BUET, Dhaka" },
-                      { field: "year", label: "Year", placeholder: "2018 – 2022" },
-                    ].map(({ field, label, placeholder }) => (
-                      <Field key={field} label={label}>
+                    {[{ f: "degree", l: "Degree" }, { f: "school", l: "University" }, { f: "year", l: "Year" }].map(item => (
+                      <Field key={item.f} label={item.l}>
                         <input
                           type="text"
-                          placeholder={placeholder}
-                          value={edu[field]}
-                          onChange={e => handlers.updateEducation(edu.id, field, e.target.value)}
+                          value={edu[item.f]}
+                          onChange={e => handlers.updateEducation(edu.id, item.f, e.target.value)}
                           className="input-style"
                         />
                       </Field>
@@ -227,119 +238,66 @@ const FormPanel = ({ data, handlers }) => {
                   </div>
                 </div>
               ))}
-              <button
-                onClick={handlers.addEducation}
-                className="w-full py-3 border border-dashed border-blue-500/25 text-blue-400/70 rounded-2xl text-[13px] hover:bg-blue-500/5 hover:border-blue-500/40 hover:text-blue-400 hover:-translate-y-0.5 transition-all"
-              >
-                + Add Education
-              </button>
+              <button onClick={handlers.addEducation} className="w-full py-3 border border-dashed border-blue-500/25 text-blue-400 rounded-2xl text-[13px]">+ Add Education</button>
             </div>
           </div>
         )}
 
-        {/* Skills */}
+        {/* Skills Section */}
         {activeSection === "skills" && (
           <div className="animate-fadeUp">
             <SectionHead title="Skills" sub="Add your technical skills" />
-            <Field label="⚡ Add Skill (Enter চাপো)">
+            <Field label="⚡ Add Skill">
               <div className="flex gap-3">
                 <input
                   type="text"
-                  placeholder="e.g. React, Node.js, Python..."
+                  placeholder="e.g. React, Node.js"
                   value={skillInput}
                   onChange={e => setSkillInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleSkillAdd()}
                   className="input-style flex-1"
                 />
-                <button
-                  onClick={handleSkillAdd}
-                  className="px-4 bg-pink-500/15 border border-pink-500/25 text-pink-400 rounded-xl text-[12px] font-medium hover:bg-pink-500/25 hover:scale-105 active:scale-95 transition-all"
-                >
-                  + Add
-                </button>
+                <button onClick={handleSkillAdd} className="px-6 bg-pink-500/15 border border-pink-500/25 text-pink-400 rounded-xl text-[12px] font-medium transition-all">+ Add</button>
               </div>
             </Field>
-            {data.skills.length > 0 && (
-              <div className="mt-4">
-                <p className="text-[10px] text-white/20 mb-3">{data.skills.length} skills added</p>
-                <div className="flex flex-wrap gap-2">
-                  {data.skills.map((skill, i) => (
-                    <span key={skill} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-medium border animate-popIn
-                      ${i % 4 === 0 ? "bg-pink-500/10 border-pink-500/25 text-pink-400" :
-                        i % 4 === 1 ? "bg-blue-500/10 border-blue-500/25 text-blue-400" :
-                        i % 4 === 2 ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" :
-                        "bg-amber-500/10 border-amber-500/25 text-amber-400"}`}
-                    >
-                      {skill}
-                      <button
-                        onClick={() => handlers.removeSkill(skill)}
-                        className="opacity-40 hover:opacity-100 hover:rotate-90 transition-all text-[10px]"
-                      >✕</button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {data.skills.map(skill => (
+                <span key={skill} className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] bg-pink-500/10 border border-pink-500/25 text-pink-400">
+                  {skill}
+                  <button onClick={() => handlers.removeSkill(skill)} className="text-[10px]">✕</button>
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Projects */}
+        {/* Projects Section */}
         {activeSection === "projects" && (
           <div className="animate-fadeUp">
-            <SectionHead title="Projects" sub="Showcase your best work" />
+            <SectionHead title="Projects" sub="Showcase your work" />
             <div className="flex flex-col gap-4">
               {data.projects.map((proj, idx) => (
-                <div key={proj.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5 hover:border-white/12 transition-all">
+                <div key={proj.id} className="bg-[#0e0e1e] border border-white/6 rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-[11px] text-orange-400 font-medium">
-                        {idx + 1}
-                      </div>
-                      <span className="text-[13px] font-medium text-white">
-                        {proj.name || <span className="text-white/30">New Project</span>}
-                      </span>
-                    </div>
+                    <span className="text-[13px] font-medium text-white">Project #{idx + 1}</span>
                     {data.projects.length > 1 && (
-                      <button
-                        onClick={() => handlers.removeProject(proj.id)}
-                        className="text-[11px] text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
-                      >
-                        ✕ Remove
-                      </button>
+                      <button onClick={() => handlers.removeProject(proj.id)} className="text-[11px] text-red-400">✕ Remove</button>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <Field label="Project Name">
-                      <input
-                        type="text"
-                        placeholder="Portfolio Website"
-                        value={proj.name}
-                        onChange={e => handlers.updateProject(proj.id, "name", e.target.value)}
-                        className="input-style"
-                      />
-                    </Field>
-                    <Field label="Tech Used">
-                      <input
-                        type="text"
-                        placeholder="React, Firebase"
-                        value={proj.tech}
-                        onChange={e => handlers.updateProject(proj.id, "tech", e.target.value)}
-                        className="input-style"
-                      />
-                    </Field>
-                    <Field label="🔗 Live Link" className="col-span-2">
-                      <input
-                        type="text"
-                        placeholder="https://myproject.com"
-                        value={proj.link}
-                        onChange={e => handlers.updateProject(proj.id, "link", e.target.value)}
-                        className="input-style"
-                      />
-                    </Field>
+                    {[{ f: "name", l: "Name" }, { f: "tech", l: "Tech" }, { f: "link", l: "Link" }].map(item => (
+                      <Field key={item.f} label={item.l}>
+                        <input
+                          type="text"
+                          value={proj[item.f]}
+                          onChange={e => handlers.updateProject(proj.id, item.f, e.target.value)}
+                          className="input-style"
+                        />
+                      </Field>
+                    ))}
                     <Field label="Description" className="col-span-2">
                       <textarea
                         rows={3}
-                        placeholder="What does this project do? What problem does it solve?"
                         value={proj.description}
                         onChange={e => handlers.updateProject(proj.id, "description", e.target.value)}
                         className="input-style resize-none"
@@ -348,12 +306,7 @@ const FormPanel = ({ data, handlers }) => {
                   </div>
                 </div>
               ))}
-              <button
-                onClick={handlers.addProject}
-                className="w-full py-3 border border-dashed border-orange-500/25 text-orange-400/70 rounded-2xl text-[13px] hover:bg-orange-500/5 hover:border-orange-500/40 hover:text-orange-400 hover:-translate-y-0.5 transition-all"
-              >
-                + Add Project
-              </button>
+              <button onClick={handlers.addProject} className="w-full py-3 border border-dashed border-orange-500/25 text-orange-400 rounded-2xl text-[13px]">+ Add Project</button>
             </div>
           </div>
         )}
@@ -363,6 +316,7 @@ const FormPanel = ({ data, handlers }) => {
   );
 };
 
+// UI Components
 const SectionHead = ({ title, sub }) => (
   <div className="mb-6 group">
     <h2 className="text-[17px] font-medium text-white">{title}</h2>
