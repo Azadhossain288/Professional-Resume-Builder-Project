@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import FormPanel from "../components/FormPanel";
 import PreviewPanel from "../components/PreviewPanel";
+import CustomizePanel from "../components/CustomizePanel";
 
 const initialData = {
   personalInfo: { name: "", title: "", email: "", phone: "", location: "", linkedin: "" },
@@ -16,14 +17,38 @@ const initialData = {
 const ResumeBuilder = () => {
   const [resumeData, setResumeData] = useState(initialData);
   const [activeTemplate, setActiveTemplate] = useState("modern");
+  const [activeSection, setActiveSection] = useState("personal");
   const [resumeId, setResumeId] = useState(null);
   const [saveStatus, setSaveStatus] = useState("idle");
   
+  const [customize, setCustomize] = useState({
+    fontSize: "medium",
+    spacing: "normal",
+    primaryColor: "#c45a8a",
+  });
   
   const [aiLoading, setAiLoading] = useState(false); 
-  
   const location = useLocation(); 
 
+  // --- LOCAL STORAGE LOGIC ---
+  // data load
+  useEffect(() => {
+    const savedData = localStorage.getItem("resumeData");
+    if (savedData) {
+      try {
+        setResumeData(JSON.parse(savedData));
+      } catch (err) {
+        console.error("Local storage parse error:", err);
+      }
+    }
+  }, []);
+
+  // if data change than save storage
+  useEffect(() => {
+    localStorage.setItem("resumeData", JSON.stringify(resumeData));
+  }, [resumeData]);
+
+  // --- URL PARAMS & API LOGIC ---
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get("id");
@@ -32,6 +57,7 @@ const ResumeBuilder = () => {
     if (isNew) {
       setResumeData(initialData);
       setResumeId(null);
+      localStorage.removeItem("resumeData"); // for new resume clean storage
     } else if (id) {
       loadResumeById(id);
     } else {
@@ -95,134 +121,79 @@ const ResumeBuilder = () => {
     }
   };
 
-  // --- Handlers ---
-  const updatePersonalInfo = (field, value) => {
-    setResumeData(prev => ({
-      ...prev,
-      personalInfo: { ...prev.personalInfo, [field]: value }
-    }));
-  };
-
-  const updateSummary = (value) => {
-    setResumeData(prev => ({ ...prev, summary: value }));
-  };
-
-  const updateExperience = (id, field, value) => {
-    setResumeData(prev => ({
-      ...prev,
-      experience: prev.experience.map(exp =>
-        exp.id === id ? { ...exp, [field]: value } : exp
-      )
-    }));
-  };
-
-  const addExperience = () => {
-    setResumeData(prev => ({
-      ...prev,
-      experience: [...prev.experience, { id: Date.now(), role: "", company: "", duration: "", description: "" }]
-    }));
-  };
-
-  const removeExperience = (id) => {
-    setResumeData(prev => ({
-      ...prev,
-      experience: prev.experience.filter(exp => exp.id !== id)
-    }));
-  };
-
-  const updateEducation = (id, field, value) => {
-    setResumeData(prev => ({
-      ...prev,
-      education: prev.education.map(edu =>
-        edu.id === id ? { ...edu, [field]: value } : edu
-      )
-    }));
-  };
-
-  const addEducation = () => {
-    setResumeData(prev => ({
-      ...prev,
-      education: [...prev.education, { id: Date.now(), degree: "", school: "", year: "" }]
-    }));
-  };
-
-  const removeEducation = (id) => {
-    setResumeData(prev => ({
-      ...prev,
-      education: prev.education.filter(edu => edu.id !== id)
-    }));
-  };
-
-  const addSkill = (skill) => {
-    if (!skill || resumeData.skills.includes(skill)) return;
-    setResumeData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
-  };
-
-  const removeSkill = (skill) => {
-    setResumeData(prev => ({
-      ...prev,
-      skills: prev.skills.filter(s => s !== skill)
-    }));
-  };
-
-  const updateProject = (id, field, value) => {
-    setResumeData(prev => ({
-      ...prev,
-      projects: prev.projects.map(p =>
-        p.id === id ? { ...p, [field]: value } : p
-      )
-    }));
-  };
-
-  const addProject = () => {
-    setResumeData(prev => ({
-      ...prev,
-      projects: [...prev.projects, { id: Date.now(), name: "", tech: "", link: "", description: "" }]
-    }));
-  };
-
-  const removeProject = (id) => {
-    setResumeData(prev => ({
-      ...prev,
-      projects: prev.projects.filter(p => p.id !== id)
-    }));
-  };
-
+  // --- HANDLERS ---
   const handlers = {
-    updatePersonalInfo, updateSummary,
-    updateExperience, addExperience, removeExperience,
-    updateEducation, addEducation, removeEducation,
-    addSkill, removeSkill,
-    updateProject, addProject, removeProject,
-    saveResume, saveStatus,
-    
-    aiLoading, setAiLoading, 
+    updatePersonalInfo: (field, value) => setResumeData(p => ({ ...p, personalInfo: { ...p.personalInfo, [field]: value } })),
+    updateSummary: (v) => setResumeData(p => ({ ...p, summary: v })),
+    updateExperience: (id, f, v) => setResumeData(p => ({ ...p, experience: p.experience.map(e => e.id === id ? { ...e, [f]: v } : e) })),
+    addExperience: () => setResumeData(p => ({ ...p, experience: [...p.experience, { id: Date.now(), role: "", company: "", duration: "", description: "" }] })),
+    removeExperience: (id) => setResumeData(p => ({ ...p, experience: p.experience.filter(e => e.id !== id) })),
+    updateEducation: (id, f, v) => setResumeData(p => ({ ...p, education: p.education.map(e => e.id === id ? { ...e, [f]: v } : e) })),
+    addEducation: () => setResumeData(p => ({ ...p, education: [...p.education, { id: Date.now(), degree: "", school: "", year: "" }] })),
+    removeEducation: (id) => setResumeData(p => ({ ...p, education: p.education.filter(e => e.id !== id) })),
+    addSkill: (s) => !resumeData.skills.includes(s) && setResumeData(p => ({ ...p, skills: [...p.skills, s] })),
+    removeSkill: (s) => setResumeData(p => ({ ...p, skills: p.skills.filter(sk => sk !== s) })),
+    updateProject: (id, f, v) => setResumeData(p => ({ ...p, projects: p.projects.map(pr => pr.id === id ? { ...pr, [f]: v } : pr) })),
+    addProject: () => setResumeData(p => ({ ...p, projects: [...p.projects, { id: Date.now(), name: "", tech: "", link: "", description: "" }] })),
+    removeProject: (id) => setResumeData(p => ({ ...p, projects: p.projects.filter(pr => pr.id !== id) })),
+    saveResume,
+    saveStatus,
+    activeSection,
+    setActiveSection,
+    customize,
+    setCustomize,
+    aiLoading,
+    setAiLoading,
   };
 
   return (
-    <div className="flex h-[calc(100vh-65px)] bg-[#080812] relative">
-      <div className="absolute top-3 right-4 z-10 flex gap-2">
-        {["modern", "classic", "minimal"].map(t => (
-          <button
-            key={t}
-            onClick={() => setActiveTemplate(t)}
-            className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition-all ${
-              activeTemplate === t
-                ? "bg-pink-500 text-white"
-                : "bg-white/5 text-white/40 hover:bg-white/10 border border-white/10"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+    <div className="flex h-[calc(100vh-65px)] bg-[#080812] overflow-hidden">
+      
+      {/* Aditor panel */}
+      <div className="w-[45%] overflow-y-auto border-r border-white/5 relative">
+        {activeSection === 'customize' ? (
+          <div className="p-6">
+             <button 
+               onClick={() => setActiveSection('personal')}
+               className="text-pink-500 text-xs mb-4 flex items-center gap-1 hover:underline font-bold"
+             >
+               ← Back to Sections
+             </button>
+             <CustomizePanel customize={customize} setCustomize={setCustomize}/>
+          </div>
+        ) : (
+          <FormPanel data={resumeData} handlers={handlers} />
+        )}
       </div>
 
-      <div className="w-1/2 overflow-y-auto border-r border-white/5">
-        <FormPanel data={resumeData} handlers={handlers} />
-      </div>
+      {/* Preview panel */}
+      <div className="flex-1 overflow-y-auto bg-[#111118] relative p-4">
+        
+        {/* template */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2 bg-white/5 p-1 rounded-full border border-white/10">
+            {["modern", "classic", "minimal", "executive"].map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveTemplate(t)}
+                className={`px-5 py-1.5 rounded-full text-[11px] font-bold capitalize transition-all ${
+                  activeTemplate === t
+                    ? "bg-pink-500 text-white shadow-lg"
+                    : "text-white/40 hover:text-white/70"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <div className="w-1/2 overflow-y-auto bg-[#111118]">
-        <PreviewPanel data={resumeData} template={activeTemplate} />
+        {/* preview panel for resume */}
+        <div className="flex justify-center pb-20">
+           <div className="w-full max-w-[800px]">
+              <PreviewPanel data={resumeData} template={activeTemplate} customize={customize} />
+           </div>
+        </div>
       </div>
     </div>
   );
